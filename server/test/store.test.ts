@@ -35,3 +35,28 @@ test('new activation replaces the old device and old refresh or logout cannot ta
     assert.equal(store.device('other')?.installationId, 'new');
   } finally { database.close(); }
 });
+
+test('facility and opening updates keep their IDs and cancellation removes upcoming results', () => {
+  const database = openDatabase(':memory:');
+  try {
+    const store = new Store(database);
+    store.saveFacility({ id: 'test', provider: 'test', name: '테스트 시설', reservationUrl: 'https://example.com/',
+      supportMode: 'open_only', reservationTypes: ['general'], checkedAt: 1 });
+    assert.equal(store.facilities()[0].checkedAt, 1);
+    const opening = { id: 'schedule', facilityId: 'test', reservationType: 'general' as const,
+      periodStart: '2026-12-01', periodEnd: '2026-12-31', opensAt: 1000, sourceUrl: 'https://example.com/notice', confirmedAt: 1 };
+    store.saveOpening(opening);
+    assert.equal(store.openingsFrom(1000)[0].revision, 1);
+    store.saveOpening({ ...opening, opensAt: 2000 });
+    assert.equal(store.openingsFrom(1000, 1500).length, 0);
+    assert.equal(store.openingsFrom(1000)[0].revision, 2);
+    assert.equal(store.cancelOpening('schedule'), true);
+    assert.equal(store.cancelOpening('schedule'), false);
+    assert.equal(store.openingsFrom(0).length, 0);
+    assert.equal(store.cancelOpening('unknown'), false);
+    store.saveOpening({ ...opening, opensAt: 3000 });
+    assert.equal(store.openingsFrom(0)[0].cancelled, false);
+    assert.equal(store.openingsFrom(0)[0].revision, 4);
+    assert.equal(database.prepare('SELECT count(*) AS total FROM opening_schedules').get()?.total, 1);
+  } finally { database.close(); }
+});
