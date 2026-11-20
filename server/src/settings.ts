@@ -3,6 +3,7 @@ export type Facility = {
   id: string; provider: string; name: string; reservationUrl: string;
   supportMode: 'open_only' | 'official_api' | 'public_page';
   reservationTypes: ReservationType[]; checkedAt: number | null;
+  staleAfterMs?: number | null;
 };
 export type AlertRule = {
   facilityId: string; weekdays?: number[];

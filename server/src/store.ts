@@ -30,16 +30,20 @@ export class Store {
       id: row.id as string, provider: row.provider as string, name: row.name as string,
       reservationUrl: row.reservation_url as string, supportMode: row.support_mode as Facility['supportMode'],
       reservationTypes: JSON.parse(row.reservation_types as string), checkedAt: row.checked_at as number | null,
+      staleAfterMs: row.stale_after_ms as number | null,
     }));
   }
 
   saveFacility(facility: Facility): void {
-    this.database.prepare(`INSERT INTO facilities VALUES (?, ?, ?, ?, ?, ?, ?)
+    this.database.prepare(`INSERT INTO facilities
+      (id, provider, name, reservation_url, support_mode, reservation_types, checked_at, stale_after_ms)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET provider = excluded.provider, name = excluded.name,
         reservation_url = excluded.reservation_url, support_mode = excluded.support_mode,
-        reservation_types = excluded.reservation_types, checked_at = excluded.checked_at`)
+        reservation_types = excluded.reservation_types, checked_at = excluded.checked_at,
+        stale_after_ms = excluded.stale_after_ms`)
       .run(facility.id, facility.provider, facility.name, facility.reservationUrl, facility.supportMode,
-        JSON.stringify(facility.reservationTypes), facility.checkedAt);
+        JSON.stringify(facility.reservationTypes), facility.checkedAt, facility.staleAfterMs ?? null);
   }
 
   saveOpening(schedule: Omit<OpeningSchedule, 'revision' | 'cancelled'>): void {
