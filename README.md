@@ -2,6 +2,8 @@
 
 [요구사항과 인터뷰 결정](interview-decision.md) · [홈·마이페이지 시안](design/home-and-my-page.png)
 
+작업 순서와 브랜치 운영 기준은 [마일스톤](milestones.md)을 따른다.
+
 현재 단계는 Flutter Android 화면과 Node.js 서버의 기본 구조다. 앱은 홈과 마이페이지 화면을 표시한다. 공공 API, 예약처 수집, 로그인, 푸시와 앱·서버 간 기능 API는 후속 구현 범위다.
 
 ## 서버 실행
