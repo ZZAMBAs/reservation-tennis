@@ -4,6 +4,8 @@
 
 작업 순서와 브랜치 운영 기준은 [마일스톤](milestones.md)을 따른다.
 
+Android SDK, Firebase, EC2와 HTTPS를 준비하는 순서는 [사용자 준비 안내](docs/environment-setup.md)에 정리했다.
+
 Flutter 앱은 홈과 마이페이지의 기본 화면을 제공한다. 서버에는 계정 설정·기기 저장, 시설·오픈 일정 관리와 홈 조회가 구현되어 있다. [API 계약](docs/api.md)과 [시설 등록 명령](docs/catalog-commands.md)을 참고한다. 실제 예약처 수집, Android 로그인·푸시와 앱 API 연결은 후속 작업이다.
 
 ## 서버 실행
