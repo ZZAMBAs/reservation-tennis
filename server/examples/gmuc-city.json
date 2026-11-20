@@ -1,0 +1,7 @@
+{
+  "id": "gmuc-city",
+  "provider": "gmuc",
+  "name": "광명시립테니스장",
+  "reservationUrl": "https://reserve.gmuc.co.kr/user/tennis/tennisReservation.do?menu=d&menuFlag=T",
+  "reservationTypes": ["general", "resident"]
+}
