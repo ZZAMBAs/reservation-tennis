@@ -1,0 +1,7 @@
+{
+  "id": "bucheon-stadium",
+  "provider": "bucheon",
+  "name": "부천 종합운동장 테니스장",
+  "reservationUrl": "https://reserv.bucheon.go.kr/site/main/lending/lendingDetail?cp=1&inst_cate=01&lending_info_seq=115&listType=list&viewMode=list",
+  "reservationTypes": ["general"]
+}
