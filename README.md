@@ -8,10 +8,12 @@
 
 ## 서버 실행
 
-Node.js 24를 설치한 환경에서는 의존성 설치 없이 실행할 수 있다.
+Node.js 24를 설치한 환경에서 의존성을 설치하고 명시적인 개발 모드로 실행한다.
 
 ```powershell
 cd server
+npm.cmd ci
+$env:APP_MODE = 'development'
 npm.cmd run dev
 ```
 
@@ -23,6 +25,8 @@ docker compose ps
 ```
 
 두 방법 모두 `http://127.0.0.1:3000/healthz`에서 SQLite 연결을 확인한다. 직접 실행하면 `server/data/tennis-reservation.sqlite`가 생성된다. `SQLITE_DB_PATH`로 바꿀 수 있다. Compose에서는 `app-data` 볼륨에 파일을 저장한다. Compose 포트를 바꾸려면 `.env.example`을 `.env`로 복사하고 `PORT`를 수정한다. Compose와 직접 실행 중 한 가지를 선택한다.
+
+현재 Compose는 루프백에 바인딩하는 로컬 개발 구성이다. `/v1` API를 호출할 때 `Authorization: Bearer dev:test-user`를 사용한다. 운영에서는 `APP_MODE=production`, `FIREBASE_PROJECT_ID`, `ALLOWED_EMAILS`와 Firebase 서버 인증이 필요하다. 인증 없는 `/healthz`는 DB 준비 상태만 확인한다.
 
 ## Android 앱 실행
 

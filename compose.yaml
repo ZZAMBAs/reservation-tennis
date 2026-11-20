@@ -5,6 +5,8 @@ services:
     ports:
       - "127.0.0.1:${PORT:-3000}:3000"
     environment:
+      APP_MODE: development
+      NODE_ENV: development
       HOST: 0.0.0.0
       PORT: 3000
       SQLITE_DB_PATH: /app/data/tennis-reservation.sqlite

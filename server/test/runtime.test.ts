@@ -22,7 +22,8 @@ async function unusedPort(): Promise<number> {
 
 async function start(path: string, port: number) {
   const child = spawn(process.execPath, [entry], {
-    env: { ...process.env, HOST: '127.0.0.1', PORT: String(port), SQLITE_DB_PATH: path },
+    env: { ...process.env, APP_MODE: 'development', NODE_ENV: 'test',
+      HOST: '127.0.0.1', PORT: String(port), SQLITE_DB_PATH: path },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   let output = '';
