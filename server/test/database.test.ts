@@ -92,7 +92,7 @@ test('catalog migration upgrades version one and keeps account settings intact',
     database.prepare('INSERT INTO accounts VALUES (?, ?)').run('first', 1);
     database.prepare('INSERT INTO account_settings VALUES (?, ?, ?)').run('first', '{}', 1);
     migrate(database);
-    assert.equal(database.prepare('PRAGMA user_version').get()?.user_version, 2);
+    assert.equal(database.prepare('PRAGMA user_version').get()?.user_version, migrations.length);
     assert.equal(database.prepare('SELECT document FROM account_settings WHERE uid = ?').get('first')?.document, '{}');
 
     const schedule = database.prepare(`INSERT INTO opening_schedules

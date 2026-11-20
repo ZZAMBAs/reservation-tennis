@@ -49,6 +49,29 @@ export const migrations: readonly string[] = [
 
     CREATE INDEX opening_schedules_by_facility_and_time ON opening_schedules(facility_id, opens_at);
   `,
+  `
+    ALTER TABLE facilities ADD COLUMN stale_after_ms INTEGER CHECK (stale_after_ms > 0);
+    CREATE TABLE facility_checks (
+      facility_id TEXT PRIMARY KEY NOT NULL REFERENCES facilities(id),
+      last_success_at INTEGER,
+      last_attempt_at INTEGER NOT NULL,
+      error TEXT
+    ) STRICT;
+    CREATE TABLE slots (
+      id TEXT PRIMARY KEY NOT NULL,
+      facility_id TEXT NOT NULL REFERENCES facilities(id),
+      court TEXT NOT NULL,
+      reservation_type TEXT NOT NULL CHECK (reservation_type IN ('general', 'resident')),
+      starts_at INTEGER NOT NULL,
+      ends_at INTEGER NOT NULL CHECK (ends_at > starts_at),
+      available INTEGER NOT NULL CHECK (available IN (0, 1)),
+      observed_at INTEGER NOT NULL,
+      price INTEGER CHECK (price >= 0),
+      restriction TEXT,
+      reservation_url TEXT
+    ) STRICT;
+    CREATE INDEX slots_by_facility_and_time ON slots(facility_id, starts_at, id);
+  `,
 ];
 
 export function migrate(database: DatabaseSync, steps: readonly string[] = migrations): void {
