@@ -38,6 +38,8 @@ local.properties
 backups/
 logs/
 *.log
+*.hprof
+*.heapdump
 *.apk
 *.aab
 node_modules/
