@@ -1,13 +1,19 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
+import 'account_card.dart';
+import 'account_session.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  AccountSession? accountSession;
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
     try {
       await Firebase.initializeApp();
+      accountSession = FirebaseAccountSession(FirebaseAuth.instance);
     } on PlatformException catch (error) {
       // FlutterFire reports absent Android resources as a platform error.
       final missingConfig =
@@ -20,11 +26,13 @@ Future<void> main() async {
       debugPrint('Android debug build started without Firebase configuration.');
     }
   }
-  runApp(const TennisReservationApp());
+  runApp(TennisReservationApp(accountSession: accountSession));
 }
 
 class TennisReservationApp extends StatelessWidget {
-  const TennisReservationApp({super.key});
+  const TennisReservationApp({super.key, this.accountSession});
+
+  final AccountSession? accountSession;
 
   @override
   Widget build(BuildContext context) {
@@ -34,13 +42,15 @@ class TennisReservationApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF183C30)),
       ),
-      home: const ReservationShell(),
+      home: ReservationShell(accountSession: accountSession),
     );
   }
 }
 
 class ReservationShell extends StatefulWidget {
-  const ReservationShell({super.key});
+  const ReservationShell({super.key, this.accountSession});
+
+  final AccountSession? accountSession;
 
   @override
   State<ReservationShell> createState() => _ReservationShellState();
@@ -55,7 +65,10 @@ class _ReservationShellState extends State<ReservationShell> {
       appBar: AppBar(title: Text(_selectedIndex == 0 ? '테니스장 알림' : '마이페이지')),
       body: IndexedStack(
         index: _selectedIndex,
-        children: const [HomePage(), MyPage()],
+        children: [
+          const HomePage(),
+          MyPage(accountSession: widget.accountSession),
+        ],
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
@@ -106,21 +119,24 @@ class HomePage extends StatelessWidget {
 }
 
 class MyPage extends StatelessWidget {
-  const MyPage({super.key});
+  const MyPage({super.key, this.accountSession});
+
+  final AccountSession? accountSession;
 
   @override
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.all(16),
-      children: const [
-        Card(
+      children: [
+        AccountCard(session: accountSession),
+        const Card(
           child: ListTile(
             leading: Icon(Icons.favorite_outline),
             title: Text('관심 시설'),
             subtitle: Text('등록된 시설이 없습니다.'),
           ),
         ),
-        Card(
+        const Card(
           child: ListTile(
             leading: Icon(Icons.notifications_outlined),
             title: Text('알림 설정'),
