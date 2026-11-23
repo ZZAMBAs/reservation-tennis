@@ -1,10 +1,42 @@
 # 사용자 준비 안내
 
-2026-11-20 기준으로 Firebase 프로젝트, Android 빌드·테스트 환경, EC2·HTTPS 주소가 아직 준비되지 않았다. 아래는 실제 계정·리소스의 소유자가 준비할 순서다. 개발 중인 기능과 검증 결과는 [마일스톤](../milestones.md)에 기록한다.
+2026-11-23 기준으로 Flutter 3.50.1 설치와 Android 라이선스 수락, Firebase 프로젝트·Android 앱 등록 및 설정 파일 다운로드를 사용자가 완료했다. 실제 점검에서도 Android 도구와 라이선스가 정상이며, Android SDK는 `%LOCALAPPDATA%\Android\sdk`에 있다. 아직 연결된 Android 기기는 없고, 앱 경로의 `google-services.json`도 없다. EC2·HTTPS는 이후 준비한다. 개발 중인 기능과 검증 결과는 [마일스톤](../milestones.md)에 기록한다.
+
+## 현재 상태에서 바로 진행할 순서
+
+1. **새 Android 프로젝트나 템플릿을 만들지 않는다.** 저장소의 `app`은 기존 Flutter 프로젝트이며 `app/android`도 이미 있다. Android Studio에서는 `app`을 Open한다. Android 네이티브 설정만 볼 때는 `app/android`를 연다.
+2. Codex와 터미널을 다시 열어 새 PATH가 반영됐는지 확인한다. 이 점검 세션에서는 `flutter`가 PATH에 없어 SDK의 절대 경로로 실행했다. 새 터미널에서도 동일하면 PATH 항목이 SDK 루트가 아닌 `C:\Users\rksid\develop\flutter\bin`인지 확인한다. 시스템 PATH를 중복 수정할 필요는 없다.
+3. Android 기기를 USB로 연결하고 USB 디버깅 승인을 한 뒤 아래 명령으로 기기 ID를 확인한다. 데이터 전송이 가능한 케이블을 사용한다.
+
+```powershell
+Set-Location app # 저장소 루트에서 실행
+& 'C:\Users\rksid\develop\flutter\bin\flutter.bat' devices
+& 'C:\Users\rksid\develop\flutter\bin\flutter.bat' run -d <Android-기기-ID>
+```
+
+4. 기존 앱의 디버그 빌드 후 `app/android`에서 `./gradlew.bat signingReport`로 debug SHA-1을 확인한다. Java를 찾지 못하면 Android Studio의 JDK 경로를 현재 PowerShell 세션에만 지정한 뒤 실행한다.
+
+```powershell
+$env:JAVA_HOME = 'C:\Program Files\Android\Android Studio\jbr'
+./gradlew.bat signingReport
+```
+
+현재 저장소의 한글 경로에서는 Android Gradle 플러그인의 경로 사전 검사가 빌드를 중단했다. 이를 지원하는 프로젝트 옵션 `android.overridePathCheck=true`를 `app/android/gradle.properties`에 적용했고, **디버그 APK 빌드와 `signingReport`가 통과했다.** Android SDK Platform 36도 빌드 중 설치됐다. 경로 허용 옵션 자체는 모든 네이티브 도구의 호환을 보장하지 않으므로 향후 경로 문제가 발생하면 OneDrive 밖의 영문 경로에 별도 체크아웃해 빌드한다. APK는 `app/build/app/outputs/flutter-apk/app-debug.apk`에 있다. 이 APK는 홈·마이페이지 보일러플레이트이며 아직 Firebase 로그인을 제공하지 않는다.
+
+5. Firebase 콘솔의 프로젝트 설정 → 내 앱 → 등록한 Android 앱에 debug SHA-1을 추가한다. Authentication → Sign-in method에서 Google을 활성화하고 지원 이메일을 선택한다. **이 두 설정 후 `google-services.json`을 다시 내려받아** `app/android/app/google-services.json`에 둔다. 콘솔의 네이티브 Android Gradle 예제는 직접 붙이지 않는다. Flutter용 Firebase 패키지·Gradle 연결은 개발 작업에서 적용한다. [Google 로그인 설정](https://firebase.google.com/docs/auth/android/google-signin), [Flutter Firebase 연결](https://firebase.google.com/docs/flutter/setup)
+6. 승인할 Google 계정 목록과 서버 서비스 계정 파일을 아래 3절에 따라 준비한다. Firebase 연결 코드는 아직 앱에 없으므로 파일을 복사한 것만으로 로그인·푸시가 동작하지 않는다. 실제 서버 인증·푸시와 기기 검증은 개발 작업에서 이어간다.
+
+## 로컬 설정과 보안 관리
+
+- `google-services.json`, 생성될 `firebase_options.dart`, 실제 `.env`·`server.env`, 서비스 계정 JSON, 개인 키·서명 키, `key.properties`, SQLite와 백업·로그는 Git에서 제외한다. `.env.example`과 `*.env.example`만 가짜 예시 값으로 커밋한다. lock 파일과 소스는 계속 추적한다.
+- Firebase 프로젝트 ID와 Android 클라이언트 설정은 서버 개인 키와 성격이 다르며, 클라이언트 설정은 APK에도 포함된다. 이 프로젝트는 사용자 요청에 따라 클라이언트 설정 파일도 로컬로 관리한다. 서버 서비스 계정 키와 API 비밀 키를 Flutter `.env`나 앱 자산에 넣지 않는다. 서버 비밀은 서버에서만 사용한다.
+- 실제 서버 환경 파일과 개인 키는 저장소 밖 `%LOCALAPPDATA%\TennisReservation`에 둔다. 파일 이름이 임의라면 제외 규칙만 믿고 저장소에 복사하지 않는다. 파일 내용이나 비밀번호는 채팅·이슈·PR에 올리지 않는다.
+- 커밋 전 `git status --short`, `git diff --cached --name-only`, `git diff --cached --check`로 범위를 확인하고, 설정 파일은 `git check-ignore -v <경로>`로 제외 여부를 확인한다. 강제 추가(`git add -f`)는 사용하지 않는다. `.gitignore`는 이미 추적된 파일이나 과거 이력을 제거하지 않는다. 과거에 유효한 비밀이 공개됐다면 삭제만으로 끝내지 말고 키를 폐기·재발급한다.
+- Firebase를 실행하기 위한 별도 컨테이너는 필요 없다. 앱과 Node.js 서버는 Google의 Firebase 서비스에 통신한다. SQLite는 Node.js 컨테이너 내부 라이브러리와 영속 볼륨으로 사용하며 별도 DB 서버를 띄우지 않는다.
 
 ## 1. 먼저 Android 빌드 환경과 테스트 기기 준비
 
-1. Windows에 Flutter SDK를 지속적으로 사용할 디렉터리에 설치하고 `bin`을 사용자 PATH에 추가한다. 현재 프로젝트는 Flutter 3.50.0, Dart 3.14.0에서 검증했다. 현재 임시 SDK 경로는 장기 개발 환경으로 사용하지 않는다.
+1. Flutter SDK는 `C:\Users\rksid\develop\flutter`에 설치되어 있다. 사용자 확인 버전은 3.50.1이며 실제 도구 점검에서도 확인했다. 기존 분석·화면 전환 테스트는 Flutter 3.50.0, Dart 3.14.0에서 통과했다.
 2. Android Studio를 설치하고 SDK Manager에서 Android SDK Platform 36, SDK Build-Tools, Platform-Tools, Command-line Tools를 설치한다. 현재 Flutter 기본값이 요구하는 NDK는 `28.2.13676358`이며 SDK Tools의 NDK(Side by side)에서 해당 버전을 설치할 수 있다. IDE의 Flutter 플러그인만 설치한 상태에서는 APK 빌드가 되지 않는다.
 3. 터미널을 다시 열고 `flutter doctor -v`를 실행한다. `flutter doctor --android-licenses`로 표시되는 조건을 직접 확인·수락한다. SDK가 기본 위치에 없으면 `flutter config --android-sdk <실제 경로>`로 지정한다.
 4. Android 기기에서 개발자 옵션과 USB 디버깅을 켜고, USB로 연결한 뒤 기기 화면에서 이 PC의 디버깅을 허용한다. `flutter devices`에 기기가 표시되는지 확인한다. 에뮬레이터로도 기본 UI를 검증할 수 있지만 파일럿 전에는 Google Play 서비스가 있는 실제 Android 기기로 푸시를 확인한다.
