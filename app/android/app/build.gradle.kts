@@ -1,7 +1,18 @@
+import com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesStrategy
+import com.google.gms.googleservices.GoogleServicesTask
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+    id("com.google.gms.google-services")
+}
+
+// Public checkouts can still build the debug UI with no local Firebase file.
+androidComponents.onVariants(androidComponents.selector().withBuildType("debug")) {
+    tasks.named<GoogleServicesTask>("processDebugGoogleServices") {
+        missingGoogleServicesStrategy.set(MissingGoogleServicesStrategy.WARN)
+    }
 }
 
 android {

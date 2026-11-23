@@ -1,6 +1,27 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
-void main() => runApp(const TennisReservationApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+    try {
+      await Firebase.initializeApp();
+    } on PlatformException catch (error) {
+      // FlutterFire reports absent Android resources as a platform error.
+      final missingConfig =
+          error.code == 'Exception' &&
+          (error.message?.startsWith(
+                'java.lang.Exception: Failed to load FirebaseOptions from resource.',
+              ) ??
+              false);
+      if (!kDebugMode || !missingConfig) rethrow;
+      debugPrint('Android debug build started without Firebase configuration.');
+    }
+  }
+  runApp(const TennisReservationApp());
+}
 
 class TennisReservationApp extends StatelessWidget {
   const TennisReservationApp({super.key});
