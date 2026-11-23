@@ -1,9 +1,44 @@
+# Actual environment files, at any depth. Examples must contain placeholders only.
 .env
 .env.*
+*.env
+*.env.*
 !.env.example
+!*.env.example
+
+# Firebase app configuration is local by project policy; Admin keys are secrets.
+google-services*.json
+firebase_options.dart
+*firebase-adminsdk*.json
+*service-account*.json
+*service_account*.json
+firebase-service-account.json
+.firebase/
+
+# Local credentials and signing material.
+.secrets/
+secrets/
+credentials/
+*.pem
+*.key
+*.p12
+*.pfx
+*.keystore
+*.jks
+key.properties
+local.properties
+
+# Runtime data and distributable artifacts.
 *.sqlite
 *.sqlite-*
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-*
+backups/
+logs/
+*.log
+*.apk
+*.aab
 node_modules/
 /server/data/
-/app/android/app/google-services.json
-firebase-service-account.json
