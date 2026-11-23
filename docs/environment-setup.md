@@ -1,63 +1,43 @@
 # 사용자 준비 안내
 
-2026-11-23 기준으로 Flutter 3.50.1 설치와 Android 라이선스 수락, Firebase 프로젝트·Android 앱 등록 및 설정 파일 다운로드를 사용자가 완료했다. 실제 점검에서도 Android 도구와 라이선스가 정상이며, Android SDK는 `%LOCALAPPDATA%\Android\sdk`에 있다. 아직 연결된 Android 기기는 없고, 앱 경로의 `google-services.json`도 없다. EC2·HTTPS는 이후 준비한다. 개발 중인 기능과 검증 결과는 [마일스톤](../milestones.md)에 기록한다.
+마지막 확인 기준으로 Flutter 3.50.1과 Android 빌드 환경이 준비되어 디버그 APK와 서명 지문을 확인했다. Firebase는 **기존 프로젝트에 Android 앱을 등록하고 첫 `google-services.json`을 다운로드한 상태**다. 사용자는 아래 1절부터 진행한다. Flutter 앱의 Firebase SDK 추가와 초기화는 개발 작업으로 남아 있다. 개발·검증 상태는 [마일스톤](../milestones.md)에 기록한다.
 
-## 현재 상태에서 바로 진행할 순서
+## 1. 사용자 작업 · Firebase 콘솔 설정과 파일 배치
 
-1. **새 Android 프로젝트나 템플릿을 만들지 않는다.** 저장소의 `app`은 기존 Flutter 프로젝트이며 `app/android`도 이미 있다. Android Studio에서는 `app`을 Open한다. Android 네이티브 설정만 볼 때는 `app/android`를 연다.
-2. Codex와 터미널을 다시 열어 새 PATH가 반영됐는지 확인한다. 이 점검 세션에서는 `flutter`가 PATH에 없어 SDK의 절대 경로로 실행했다. 새 터미널에서도 동일하면 PATH 항목이 SDK 루트가 아닌 `C:\Users\rksid\develop\flutter\bin`인지 확인한다. 시스템 PATH를 중복 수정할 필요는 없다.
-3. Android 기기를 USB로 연결하고 USB 디버깅 승인을 한 뒤 아래 명령으로 기기 ID를 확인한다. 데이터 전송이 가능한 케이블을 사용한다.
+1. Firebase의 Android 앱 등록 화면에서 **SDK 추가**가 보이면 그 단계는 개발 작업에 맡긴다. 콘솔의 등록 흐름을 닫고 기존 프로젝트의 개요로 이동한다. 프로젝트 설정 → 내 앱에서 패키지 `dev.tennisreservation.tennis_reservation`으로 등록한 앱을 연다.
+2. 해당 앱에 **현재 디버그 APK의 SHA-1**을 추가한다. 이전 검증에서 안내한 지문은 같은 디버그 키를 사용하는 동안 그대로 쓸 수 있다. 키가 바뀌었거나 새 PC라면, APK를 빌드한 후 저장소의 `app/android`에서 `.\gradlew.bat signingReport`를 실행하고 `Variant: debug` 아래의 `SHA1`을 사용한다. Java가 감지되지 않으면 Android Studio에 포함된 JDK 경로를 현재 터미널의 `JAVA_HOME`으로 지정한다.
+3. Authentication에 처음 들어가면 **시작하기**를 누른다. Sign-in method에서 **Google**을 활성화하고 지원 이메일을 선택한 뒤 저장한다. SHA-1 등록과 Google 활성화를 마친 뒤 프로젝트 설정의 같은 Android 앱에서 `google-services.json`을 다시 다운로드한다.
+4. 새 파일을 저장소의 `app/android/app/google-services.json`에 놓는다. 다운로드 파일명에 `(1)`이 붙었다면 목적지에서는 정확히 `google-services.json`으로 둔다. Git 제외 여부는 저장소 루트에서 `git check-ignore -v -- app/android/app/google-services.json`으로 확인할 수 있다. 완료 여부만 공유한다. [Firebase Android Google 로그인 설정](https://firebase.google.com/docs/auth/android/google-signin)
 
-```powershell
-Set-Location app # 저장소 루트에서 실행
-& 'C:\Users\rksid\develop\flutter\bin\flutter.bat' devices
-& 'C:\Users\rksid\develop\flutter\bin\flutter.bat' run -d <Android-기기-ID>
-```
+## 2. 기존 Flutter 앱 실행과 SDK 연결
 
-4. 기존 앱의 디버그 빌드 후 `app/android`에서 `./gradlew.bat signingReport`로 debug SHA-1을 확인한다. Java를 찾지 못하면 Android Studio의 JDK 경로를 현재 PowerShell 세션에만 지정한 뒤 실행한다.
+기기 연결은 1절과 병행할 수 있다. Android Studio에서 저장소의 기존 `app` 폴더를 연다. 휴대전화의 개발자 옵션에서 USB 디버깅을 켜고 데이터 전송이 가능한 케이블로 연결한 뒤 휴대전화에서 이 PC를 허용한다. 저장소 루트에서 다음을 실행한다.
 
 ```powershell
-$env:JAVA_HOME = 'C:\Program Files\Android\Android Studio\jbr'
-./gradlew.bat signingReport
+Set-Location app
+flutter devices
 ```
 
-현재 저장소의 한글 경로에서는 Android Gradle 플러그인의 경로 사전 검사가 빌드를 중단했다. 이를 지원하는 프로젝트 옵션 `android.overridePathCheck=true`를 `app/android/gradle.properties`에 적용했고, **디버그 APK 빌드와 `signingReport`가 통과했다.** Android SDK Platform 36도 빌드 중 설치됐다. 경로 허용 옵션 자체는 모든 네이티브 도구의 호환을 보장하지 않으므로 향후 경로 문제가 발생하면 OneDrive 밖의 영문 경로에 별도 체크아웃해 빌드한다. APK는 `app/build/app/outputs/flutter-apk/app-debug.apk`에 있다. 이 APK는 홈·마이페이지 보일러플레이트이며 아직 Firebase 로그인을 제공하지 않는다.
+기기가 표시되면 `app` 폴더에서 `flutter run -d 'DEVICE_ID'`를 실행한다. `DEVICE_ID`는 목록의 실제 ID로 바꾼다. 현재 APK에서는 홈과 마이페이지를 확인할 수 있다. `flutter`를 찾지 못하면 새 터미널을 열고 Flutter SDK의 `bin`이 PATH에 있는지 확인한다. 기존 APK는 `app/build/app/outputs/flutter-apk/app-debug.apk`에 있다. 빌드와 서명 검증은 [실행 검증 기록](runtime-verification.md)에 남겼다. [Flutter Android 환경 설정](https://docs.flutter.dev/platform-integration/android/setup)
 
-5. Firebase 콘솔의 프로젝트 설정 → 내 앱 → 등록한 Android 앱에 debug SHA-1을 추가한다. Authentication → Sign-in method에서 Google을 활성화하고 지원 이메일을 선택한다. **이 두 설정 후 `google-services.json`을 다시 내려받아** `app/android/app/google-services.json`에 둔다. 콘솔의 네이티브 Android Gradle 예제는 직접 붙이지 않는다. Flutter용 Firebase 패키지·Gradle 연결은 개발 작업에서 적용한다. [Google 로그인 설정](https://firebase.google.com/docs/auth/android/google-signin), [Flutter Firebase 연결](https://firebase.google.com/docs/flutter/setup)
-6. 승인할 Google 계정 목록과 서버 서비스 계정 파일을 아래 3절에 따라 준비한다. Firebase 연결 코드는 아직 앱에 없으므로 파일을 복사한 것만으로 로그인·푸시가 동작하지 않는다. 실제 서버 인증·푸시와 기기 검증은 개발 작업에서 이어간다.
+새 PC에서 재현할 때는 `flutter doctor -v`로 Android 도구를 확인한다. 현재 빌드는 SDK Platform 36과 NDK `28.2.13676358`을 사용한다. `app`에서 `flutter build apk --debug`를 실행한다.
+
+**개발 작업**은 Flutter Firebase 패키지 추가, Android 빌드 구성 연결, Firebase 초기화, Google 로그인과 FCM 연동이다. 현재 Flutter 앱에는 이 코드가 아직 없다. 사용자가 콘솔의 네이티브 Gradle 예제를 붙여 넣거나 FlutterFire CLI를 실행할 필요는 없다. 개발에서 갱신한 JSON으로 패키지와 프로젝트 구성을 확인한 후 빌드하고, 실제 Android 기기에서 로그인과 푸시를 검증한다. 승인 계정과 서버 인증 정보는 3절에서 별도로 준비한다. [Flutter Firebase 연결](https://firebase.google.com/docs/flutter/setup)
 
 ## 로컬 설정과 보안 관리
 
 - `google-services.json`, 생성될 `firebase_options.dart`, 실제 `.env`·`server.env`, 서비스 계정 JSON, 개인 키·서명 키, `key.properties`, SQLite와 백업·로그는 Git에서 제외한다. `.env.example`과 `*.env.example`만 가짜 예시 값으로 커밋한다. lock 파일과 소스는 계속 추적한다.
 - Firebase 프로젝트 ID와 Android 클라이언트 설정은 서버 개인 키와 성격이 다르며, 클라이언트 설정은 APK에도 포함된다. 이 프로젝트는 사용자 요청에 따라 클라이언트 설정 파일도 로컬로 관리한다. 서버 서비스 계정 키와 API 비밀 키를 Flutter `.env`나 앱 자산에 넣지 않는다. 서버 비밀은 서버에서만 사용한다.
 - 실제 서버 환경 파일과 개인 키는 저장소 밖 `%LOCALAPPDATA%\TennisReservation`에 둔다. 파일 이름이 임의라면 제외 규칙만 믿고 저장소에 복사하지 않는다. 파일 내용이나 비밀번호는 채팅·이슈·PR에 올리지 않는다.
+- 공개 문서·커밋·이슈·PR의 명령과 예시는 저장소 기준 상대 경로나 환경 변수를 사용한다. 개인 계정명, 실제 홈 경로, 비공개 설정값은 예시에 넣지 않는다.
 - 커밋 전 `git status --short`, `git diff --cached --name-only`, `git diff --cached --check`로 범위를 확인하고, 설정 파일은 `git check-ignore -v <경로>`로 제외 여부를 확인한다. 강제 추가(`git add -f`)는 사용하지 않는다. `.gitignore`는 이미 추적된 파일이나 과거 이력을 제거하지 않는다. 과거에 유효한 비밀이 공개됐다면 삭제만으로 끝내지 말고 키를 폐기·재발급한다.
 - Firebase를 실행하기 위한 별도 컨테이너는 필요 없다. 앱과 Node.js 서버는 Google의 Firebase 서비스에 통신한다. SQLite는 Node.js 컨테이너 내부 라이브러리와 영속 볼륨으로 사용하며 별도 DB 서버를 띄우지 않는다.
-
-## 1. 먼저 Android 빌드 환경과 테스트 기기 준비
-
-1. Flutter SDK는 `C:\Users\rksid\develop\flutter`에 설치되어 있다. 사용자 확인 버전은 3.50.1이며 실제 도구 점검에서도 확인했다. 기존 분석·화면 전환 테스트는 Flutter 3.50.0, Dart 3.14.0에서 통과했다.
-2. Android Studio를 설치하고 SDK Manager에서 Android SDK Platform 36, SDK Build-Tools, Platform-Tools, Command-line Tools를 설치한다. 현재 Flutter 기본값이 요구하는 NDK는 `28.2.13676358`이며 SDK Tools의 NDK(Side by side)에서 해당 버전을 설치할 수 있다. IDE의 Flutter 플러그인만 설치한 상태에서는 APK 빌드가 되지 않는다.
-3. 터미널을 다시 열고 `flutter doctor -v`를 실행한다. `flutter doctor --android-licenses`로 표시되는 조건을 직접 확인·수락한다. SDK가 기본 위치에 없으면 `flutter config --android-sdk <실제 경로>`로 지정한다.
-4. Android 기기에서 개발자 옵션과 USB 디버깅을 켜고, USB로 연결한 뒤 기기 화면에서 이 PC의 디버깅을 허용한다. `flutter devices`에 기기가 표시되는지 확인한다. 에뮬레이터로도 기본 UI를 검증할 수 있지만 파일럿 전에는 Google Play 서비스가 있는 실제 Android 기기로 푸시를 확인한다.
-5. 프로젝트의 `app`에서 `flutter pub get`, `flutter build apk --debug`를 실행한다. 성공하면 `app/build/app/outputs/flutter-apk/app-debug.apk`가 생성된다. 개발에서는 기기를 연결한 상태에서 `flutter run`으로 실행할 수 있다.
-
-완료 후 알려줄 내용은 Flutter 버전, Android SDK 경로, `flutter doctor`의 Android 항목 성공 여부, 테스트 기기 연결 여부다. [Flutter Android 환경 설정](https://docs.flutter.dev/platform-integration/android/setup)
-
-## 2. Firebase 프로젝트와 앱 등록
-
-1. 본인 Google 계정으로 Firebase 콘솔에서 이 서비스용 프로젝트를 만든다. Project settings에서 **프로젝트 ID**를 확인한다. 표시 이름과 프로젝트 ID는 서로 다를 수 있다.
-2. Android 앱을 추가하고 패키지 이름에 `dev.tennisreservation.tennis_reservation`을 입력한다. 이 패키지 이름을 기준으로 향후 APK도 빌드한다.
-3. 1단계의 디버그 빌드 후 `app/android`에서 `./gradlew.bat signingReport`를 실행해 실제 debug 인증서의 SHA-1을 확인한다. Firebase의 Android 앱에 SHA-1을 등록한다. 직접 찾기 어렵다면 Android SDK 준비 후 개발 작업에서 지문을 추출할 수 있다.
-4. Authentication의 로그인 제공업체에서 **Google**을 활성화하고 프로젝트 지원 이메일을 지정한다. SHA-1과 로그인 설정을 마친 다음 Android 앱 설정 파일 `google-services.json`을 다시 내려받아 프로젝트의 `app/android/app/google-services.json`에 둔다. 이 파일은 Git에서 제외되어 있다.
-5. 테스트에 참여할 Google 계정을 정하고 서버의 `ALLOWED_EMAILS`에 등록할 목록을 준비한다. 실제 이메일 목록은 환경 파일에만 보관한다.
-6. Project settings의 Cloud Messaging에서 Firebase Cloud Messaging API(HTTP v1)가 활성화되어 있는지 확인한다. 모바일 앱은 Firebase SDK를 통해 등록하고 서버는 Admin SDK로 전달한다. 이 작업에 Firebase 서버를 따로 설치할 필요는 없다.
-
-완료 후 알려줄 내용은 프로젝트 ID, Android 앱 등록과 Google 로그인 활성화 여부, `google-services.json` 배치 여부다. 실제 Google 로그인과 FCM은 M4에서 앱을 연결한 뒤 검증한다. [Firebase Android Google 로그인](https://firebase.google.com/docs/auth/android/google-signin), [FCM 서버 인증](https://firebase.google.com/docs/cloud-messaging/auth-server)
 
 ## 3. Firebase 서버 인증 파일 준비
 
 Firebase는 Google 클라우드 서비스다. EC2의 Node.js 서버는 Google API와 HTTPS로 통신하며 서버 인증 정보가 필요하다. 이 문서에서는 소규모 초기 구성을 위해 서비스 계정 JSON 파일 방식을 사용한다.
+
+이 단계는 실제 서버 인증·푸시를 검증할 때 필요하다. 테스트에 사용할 Google 계정을 정해 `ALLOWED_EMAILS`에 넣고, 푸시 검증 전에 Firebase 프로젝트 설정 → Cloud Messaging에서 FCM HTTP v1 활성화 여부를 확인한다. [FCM 서버 인증](https://firebase.google.com/docs/cloud-messaging/auth-server)
 
 1. Firebase 프로젝트 설정의 Service accounts 또는 연결된 Google Cloud IAM에서 서비스 계정을 준비한다. 서버는 Firebase Auth 토큰 폐기·사용자 상태 확인과 FCM 발송 권한이 필요하다. 권한을 직접 구성할 경우 해당 프로젝트에 필요한 Auth 사용자 조회와 FCM 발송 범위로 한정한다.
 2. 해당 서비스 계정의 키 생성이 허용되는 계정이면 JSON 키를 생성해 내려받는다. 조직 정책이 키 생성을 금지하면 정책을 해제하기보다 그 상태를 알려주고 지원되는 인증 방식을 정한다.
@@ -107,5 +87,3 @@ EC2를 생성했다면 리전, 인스턴스 ID, 운영체제, 접속 주소·방
 ## 6. 비공개 파일럿 배포 준비
 
 Firebase App Distribution에서 테스터로 초대할 Google 계정을 정한다. 개발 작업에서 파일럿용 릴리스 서명 키와 APK를 준비하면 그 인증서 SHA-1도 Firebase에 추가한다. 이후 APK가 같은 키로 서명되도록 키와 비밀번호는 별도 보관한다. 실제 배포 APK에서 로그인·푸시·외부 예약 링크가 동작하는지 확인한 뒤 테스터를 확대한다. [Firebase Android 비공개 배포](https://firebase.google.com/docs/app-distribution/android/distribute-console)
-
-지금 먼저 준비할 것은 **Android SDK·기기와 Firebase 프로젝트**다. EC2·DNS·백업은 실제 로그인과 알림의 실기기 확인 이후 마련하면 된다.
