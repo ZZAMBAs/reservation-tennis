@@ -1,6 +1,6 @@
 # 사용자 준비 안내
 
-Flutter 3.50.1과 Android 빌드 환경에서 디버그 APK와 서명 지문을 확인했다. 앱에 Firebase Core를 연결했고, 로컬 `google-services.json`의 프로젝트와 Android 패키지가 일치하는 것을 확인했다. Google 로그인에 필요한 OAuth 항목은 이 파일에 아직 없다. 사용자 작업은 아래 1절에, 개발·검증 상태는 [마일스톤](../milestones.md)에 기록한다.
+Flutter 3.50.1과 Android 빌드 환경에서 디버그 APK와 서명 지문을 확인했다. 앱에 Firebase Core와 마이페이지 Google 로그인을 연결했다. 로컬 `google-services.json`의 프로젝트와 Android 패키지는 일치하지만 Google 로그인에 필요한 OAuth 항목은 아직 없다. 사용자 작업은 아래 1절에, 개발·검증 상태는 [마일스톤](../milestones.md)에 기록한다.
 
 ## 1. 사용자 작업 · Firebase 콘솔 설정과 파일 배치
 
@@ -18,11 +18,13 @@ Set-Location app
 flutter devices
 ```
 
-기기가 표시되면 `app` 폴더에서 `flutter run -d 'DEVICE_ID'`를 실행한다. `DEVICE_ID`는 목록의 실제 ID로 바꾼다. 현재 APK에서는 홈과 마이페이지를 확인할 수 있다. `flutter`를 찾지 못하면 새 터미널을 열고 Flutter SDK의 `bin`이 PATH에 있는지 확인한다. 기존 APK는 `app/build/app/outputs/flutter-apk/app-debug.apk`에 있다. 빌드와 서명 검증은 [실행 검증 기록](runtime-verification.md)에 남겼다. [Flutter Android 환경 설정](https://docs.flutter.dev/platform-integration/android/setup)
+기기가 표시되면 `app` 폴더에서 `flutter run -d 'DEVICE_ID'`를 실행한다. `DEVICE_ID`는 목록의 실제 ID로 바꾼다. APK에서 홈과 마이페이지를 확인할 수 있다. `flutter`를 찾지 못하면 새 터미널을 열고 Flutter SDK의 `bin`이 PATH에 있는지 확인한다. 디버그 APK는 `app/build/app/outputs/flutter-apk/app-debug.apk`에 있다. 빌드와 서명 검증은 [실행 검증 기록](runtime-verification.md)에 남겼다. [Flutter Android 환경 설정](https://docs.flutter.dev/platform-integration/android/setup)
 
 새 PC에서 재현할 때는 `flutter doctor -v`로 Android 도구를 확인한다. 현재 빌드는 SDK Platform 36과 NDK `28.2.13676358`을 사용한다. `app`에서 `flutter build apk --debug`를 실행한다.
 
-Android 빌드는 Google Services Gradle 플러그인으로 로컬 JSON을 앱 리소스에 반영하며, Flutter 앱은 그 설정으로 Firebase Core를 초기화한다. 설정 파일이 없는 디버그 빌드에서는 기본 홈·마이페이지를 열 수 있다. Android 프로필·릴리스 빌드에는 Firebase 설정 파일이 필요하다. Google 로그인과 FCM은 후속 개발 작업이며 실제 Android 기기에서 검증한다. 승인 계정과 서버 인증 정보는 3절에서 별도로 준비한다. [Flutter Firebase 연결](https://firebase.google.com/docs/flutter/setup)
+Android 빌드는 Google Services Gradle 플러그인으로 로컬 JSON을 앱 리소스에 반영한다. 설정 파일이 없는 디버그 빌드에서는 홈과 마이페이지를 열 수 있다. Android 프로필·릴리스 빌드에는 Firebase 설정 파일이 필요하다. [Flutter Firebase 연결](https://firebase.google.com/docs/flutter/setup)
+
+OAuth 설정을 마치면 새 APK의 **마이페이지 → Google로 로그인**을 눌러 로그인, 앱 재실행 후 계정 복원, 로그아웃을 확인한다. 마이페이지에 계정이 표시되면 앱의 Firebase 세션이 열린 상태다. 승인 계정 여부는 예약 데이터를 요청할 때 기존 서버 인증이 판단한다. 서버 인증과 FCM 검증에 필요한 정보는 3절에서 준비한다. 기기에서 인증 창이 계정 선택 직후 닫히거나 설정 오류가 표시되면, 같은 앱의 서명 지문과 JSON의 웹 OAuth `client_type: 3` 항목을 확인한다. [Google 로그인 Android 설정 점검](https://pub.dev/packages/google_sign_in_android#troubleshooting)
 
 ## 로컬 설정과 보안 관리
 
