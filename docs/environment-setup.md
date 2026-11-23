@@ -1,13 +1,13 @@
 # 사용자 준비 안내
 
-마지막 확인 기준으로 Flutter 3.50.1과 Android 빌드 환경이 준비되어 디버그 APK와 서명 지문을 확인했다. Firebase는 **기존 프로젝트에 Android 앱을 등록하고 첫 `google-services.json`을 다운로드한 상태**다. 사용자는 아래 1절부터 진행한다. Flutter 앱의 Firebase SDK 추가와 초기화는 개발 작업으로 남아 있다. 개발·검증 상태는 [마일스톤](../milestones.md)에 기록한다.
+Flutter 3.50.1과 Android 빌드 환경에서 디버그 APK와 서명 지문을 확인했다. 앱에 Firebase Core를 연결했고, 로컬 `google-services.json`의 프로젝트와 Android 패키지가 일치하는 것을 확인했다. Google 로그인에 필요한 OAuth 항목은 이 파일에 아직 없다. 사용자 작업은 아래 1절에, 개발·검증 상태는 [마일스톤](../milestones.md)에 기록한다.
 
 ## 1. 사용자 작업 · Firebase 콘솔 설정과 파일 배치
 
-1. Firebase의 Android 앱 등록 화면에서 **SDK 추가**가 보이면 그 단계는 개발 작업에 맡긴다. 콘솔의 등록 흐름을 닫고 기존 프로젝트의 개요로 이동한다. 프로젝트 설정 → 내 앱에서 패키지 `dev.tennisreservation.tennis_reservation`으로 등록한 앱을 연다.
+1. Firebase의 기존 프로젝트를 연다. 프로젝트 설정 → 내 앱에서 패키지 `dev.tennisreservation.tennis_reservation`으로 등록한 앱을 선택한다. 등록 화면의 **SDK 추가**는 Flutter 앱 코드에 적용했다.
 2. 해당 앱에 **현재 디버그 APK의 SHA-1**을 추가한다. 이전 검증에서 안내한 지문은 같은 디버그 키를 사용하는 동안 그대로 쓸 수 있다. 키가 바뀌었거나 새 PC라면, APK를 빌드한 후 저장소의 `app/android`에서 `.\gradlew.bat signingReport`를 실행하고 `Variant: debug` 아래의 `SHA1`을 사용한다. Java가 감지되지 않으면 Android Studio에 포함된 JDK 경로를 현재 터미널의 `JAVA_HOME`으로 지정한다.
 3. Authentication에 처음 들어가면 **시작하기**를 누른다. Sign-in method에서 **Google**을 활성화하고 지원 이메일을 선택한 뒤 저장한다. SHA-1 등록과 Google 활성화를 마친 뒤 프로젝트 설정의 같은 Android 앱에서 `google-services.json`을 다시 다운로드한다.
-4. 새 파일을 저장소의 `app/android/app/google-services.json`에 놓는다. 다운로드 파일명에 `(1)`이 붙었다면 목적지에서는 정확히 `google-services.json`으로 둔다. Git 제외 여부는 저장소 루트에서 `git check-ignore -v -- app/android/app/google-services.json`으로 확인할 수 있다. 완료 여부만 공유한다. [Firebase Android Google 로그인 설정](https://firebase.google.com/docs/auth/android/google-signin)
+4. 새 파일을 저장소의 `app/android/app/google-services.json`에 놓는다. 다운로드 파일명에 `(1)`이 붙었다면 목적지에서는 정확히 `google-services.json`으로 둔다. Git 제외 여부는 저장소 루트에서 `git check-ignore -v -- app/android/app/google-services.json`으로 확인할 수 있다. 이미 파일을 교체했는데 OAuth 항목이 없으면 같은 프로젝트에서 지문과 Google 로그인 설정이 각각 저장됐는지 확인한 뒤 다시 내려받는다. 완료 여부만 공유한다. [Firebase Android Google 로그인 설정](https://firebase.google.com/docs/auth/android/google-signin)
 
 ## 2. 기존 Flutter 앱 실행과 SDK 연결
 
@@ -22,7 +22,7 @@ flutter devices
 
 새 PC에서 재현할 때는 `flutter doctor -v`로 Android 도구를 확인한다. 현재 빌드는 SDK Platform 36과 NDK `28.2.13676358`을 사용한다. `app`에서 `flutter build apk --debug`를 실행한다.
 
-**개발 작업**은 Flutter Firebase 패키지 추가, Android 빌드 구성 연결, Firebase 초기화, Google 로그인과 FCM 연동이다. 현재 Flutter 앱에는 이 코드가 아직 없다. 사용자가 콘솔의 네이티브 Gradle 예제를 붙여 넣거나 FlutterFire CLI를 실행할 필요는 없다. 개발에서 갱신한 JSON으로 패키지와 프로젝트 구성을 확인한 후 빌드하고, 실제 Android 기기에서 로그인과 푸시를 검증한다. 승인 계정과 서버 인증 정보는 3절에서 별도로 준비한다. [Flutter Firebase 연결](https://firebase.google.com/docs/flutter/setup)
+Android 빌드는 Google Services Gradle 플러그인으로 로컬 JSON을 앱 리소스에 반영하며, Flutter 앱은 그 설정으로 Firebase Core를 초기화한다. 설정 파일이 없는 디버그 빌드에서는 기본 홈·마이페이지를 열 수 있다. Android 프로필·릴리스 빌드에는 Firebase 설정 파일이 필요하다. Google 로그인과 FCM은 후속 개발 작업이며 실제 Android 기기에서 검증한다. 승인 계정과 서버 인증 정보는 3절에서 별도로 준비한다. [Flutter Firebase 연결](https://firebase.google.com/docs/flutter/setup)
 
 ## 로컬 설정과 보안 관리
 
